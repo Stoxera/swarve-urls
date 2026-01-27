@@ -8,7 +8,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.DISCORD_CLIENT_ID,
       clientSecret: process.env.DISCORD_CLIENT_SECRET,
       // Requesting identify, email, and guilds.join scopes
-      authorization: "https://discord.com/api/oauth2/authorize?scope=identify+email+guilds.join",
+      authorization: {
+        params: {
+          scope: "identify email guilds.join",
+        },
+      },
     }),
   ],
   session: { strategy: "jwt" },
