@@ -49,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           // 2. Auto-join Discord Server logic
           if (account.access_token) {
-            const guildId = "TU_GUILD_ID_AQUI"; // Replace with your Server ID
+            const guildId = "1457507130968903845"; // Replace with your Server ID
             const botToken = process.env.DISCORD_BOT_TOKEN;
 
             await fetch(
