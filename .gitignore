@@ -3,19 +3,20 @@
 # dependencies
 /node_modules
 /.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+.pnp.js
 
 # testing
 /coverage
 
+# database
+/prisma/db.sqlite
+/prisma/db.sqlite-journal
+dump.sql
+
 # next.js
 /.next/
 /out/
+next-env.d.ts
 
 # production
 /build
@@ -30,12 +31,21 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# local env files
+.env
+.env*.local
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+
+# prisma & dump files
+migrations
+dev.db
+dev.db-journal
+mysql2sqlite
+pscale*
+db_dump.sql
+dump-in-sqlite.db
