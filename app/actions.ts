@@ -9,7 +9,7 @@ export async function createShortUrl(formData: FormData) {
     const session = await auth();
 
     if (!session?.user?.id) {
-        throw new Error("You must be logged in to create links.");
+        return { success: false, error: "Authentication required" };
     }
 
     const url = formData.get('url') as string;
@@ -17,7 +17,7 @@ export async function createShortUrl(formData: FormData) {
     const description = formData.get('description') as string;
 
     if (!url || !url.startsWith('http')) {
-        throw new Error("Please enter a valid URL.");
+        return { success: false, error: "Invalid URL format" };
     }
 
     const slug = customSlug.trim() !== "" ? customSlug : nanoid(6);
@@ -40,11 +40,17 @@ export async function createShortUrl(formData: FormData) {
         });
 
         revalidatePath('/dashboard');
+        return { success: true };
+
     } catch (error: any) {
         console.error("TURSO DEBUG:", error);
         
-        // Error handling for DB issues
-        throw new Error(`Database Error: ${error.message}`);
+        
+        if (error.message?.includes("UNIQUE constraint failed") || error.code === "SQLITE_CONSTRAINT") {
+            return { success: false, error: "Slug already taken" };
+        }
+
+        return { success: false, error: "Unexpected database error" };
     }
 }
 

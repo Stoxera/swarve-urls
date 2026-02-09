@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Toaster } from "sonner";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -58,6 +59,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </header>
       {children}
+      <Toaster richColors position="top-right" />
     </div>
   );
 }

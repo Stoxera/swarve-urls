@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Shuffle, Rocket, Tags, Pencil, Save } from "lucide-react";
+import { X, Shuffle, Rocket, Tags, Save } from "lucide-react";
 import { createShortUrl, updateLink } from "@/app/actions";
 import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
 
 interface CreateLinkModalProps {
   children: React.ReactNode;
@@ -17,7 +18,6 @@ interface CreateLinkModalProps {
   };
 }
 
-
 function SubmitButton({ isEditing }: { isEditing: boolean }) {
   const { pending } = useFormStatus();
 
@@ -26,7 +26,7 @@ function SubmitButton({ isEditing }: { isEditing: boolean }) {
       type="submit"
       disabled={pending}
       className={`flex items-center gap-2 bg-zinc-100 text-black px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-white transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
-        pending ? "animation-loading-1" : ""
+        pending ? "animate-pulse" : ""
       }`}
     >
       {pending ? (
@@ -47,17 +47,32 @@ export default function CreateLinkModal({
   initialData,
 }: CreateLinkModalProps) {
   const [open, setOpen] = React.useState(false);
-  const isEditing = !!initialData;
-  
-  
   const [slug, setSlug] = React.useState(initialData?.slug || "");
+  const isEditing = !!initialData;
 
   const generateRandomSlug = () => {
-    if (isEditing) return; 
+    if (isEditing) return;
     setSlug(Math.random().toString(36).substring(2, 8));
   };
 
-  
+  async function handleSubmit(formData: FormData) {
+    const result = isEditing 
+      ? await updateLink(formData) 
+      : await createShortUrl(formData);
+
+    if (result?.success) {
+      toast.success(isEditing ? "Link updated!" : "Link created!");
+      setOpen(false);
+      if (!isEditing) setSlug("");
+    } else {
+      const errorMessage = result?.error === "Slug already taken" 
+        ? "Short link already taken" 
+        : (result?.error || "Something went wrong");
+      
+      toast.error(errorMessage);
+    }
+  }
+
   if (disabled && !isEditing) return <>{children}</>;
 
   return (
@@ -75,21 +90,9 @@ export default function CreateLinkModal({
             </Dialog.Close>
           </div>
 
-          <form
-            action={async (formData) => {
-              if (isEditing) {
-                await updateLink(formData);
-              } else {
-                await createShortUrl(formData);
-              }
-              setOpen(false);
-            }}
-            className="space-y-5"
-          >
-            
+          <form action={handleSubmit} className="space-y-5">
             {isEditing && <input type="hidden" name="id" value={initialData.id} />}
 
-            
             <div className="space-y-2">
               <label className="text-sm font-bold text-zinc-200">Destination URL:</label>
               <input
@@ -102,7 +105,6 @@ export default function CreateLinkModal({
               />
             </div>
 
-            
             <div className="space-y-2">
               <label className="text-sm font-bold text-zinc-200">Short link:</label>
               <div className="flex gap-2">
@@ -111,7 +113,7 @@ export default function CreateLinkModal({
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
                   placeholder="mylink"
-                  readOnly={isEditing} 
+                  readOnly={isEditing}
                   className={`flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-300 outline-none transition-all ${
                     isEditing ? "opacity-50 cursor-not-allowed" : "focus:border-zinc-600"
                   }`}
@@ -128,7 +130,6 @@ export default function CreateLinkModal({
               </div>
             </div>
 
-            
             <div className="space-y-2">
               <label className="text-sm font-bold text-zinc-200">Description (optional):</label>
               <textarea
@@ -140,12 +141,10 @@ export default function CreateLinkModal({
               />
             </div>
 
-            
             <div className="flex items-center justify-center gap-2 py-3 border border-dashed border-zinc-800 rounded-xl text-zinc-600 text-[11px] uppercase tracking-widest font-bold bg-zinc-950/50">
               <Tags size={14} /> You don't have any tag created.
             </div>
 
-            
             <div className="flex items-center justify-end gap-4 mt-8 pt-4">
               <Dialog.Close className="text-sm font-medium text-zinc-500 hover:text-white transition-colors">
                 Cancel

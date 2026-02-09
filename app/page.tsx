@@ -4,7 +4,7 @@ import Link from "next/link";
 import { LinkIcon, Shield, Zap, BarChart3, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
-
+// import Hero from "@/components/Hero";
 
 export default function Home() {
   const features = [
@@ -28,10 +28,12 @@ export default function Home() {
   return (
     <div className="flex flex-col bg-black text-white selection:bg-zinc-800">
       <Header />
+      { /* <Hero /> */ }
       
       <main className="flex flex-col items-center">
+        
        
-        <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden w-full">
+         <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-6 overflow-hidden w-full">
           
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-zinc-900/20 blur-[120px] rounded-full" />
 
@@ -67,7 +69,7 @@ export default function Home() {
               </Link>
             </div>
           </motion.div>
-        </section>
+        </section> 
 
         
         <section id="features" className="w-full max-w-7xl px-6 py-32 border-t border-zinc-900/50">
