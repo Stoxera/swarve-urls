@@ -1,97 +1,115 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { BarChart3, Globe, MousePointerClick, QrCode, ShieldCheck } from 'lucide-react';
+import { BarChart3, Globe, MousePointerClick, QrCode, ShieldCheck, Construction, Timer, Hammer } from 'lucide-react';
 
-// Tipado para los parámetros en Next.js 15/16
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
-  return { title: `Analíticas: ${slug} | Swarve` };
+  return { title: `Analytics: ${slug} | Swarve` };
 }
 
 export default async function AnalyticsPage({ params }: { params: Params }) {
-  // En Next.js 15+, params es una Promesa que debe ser "awaited"
   const { slug } = await params;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8 relative overflow-hidden font-sans">
       {/* Header */}
-      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-violet-500">
-            Analíticas de /{slug}
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Analytics for /{slug}
           </h1>
-          <p className="text-gray-400 mt-1">Monitorea el rendimiento y el origen de tus clics en tiempo real.</p>
+          <p className="text-zinc-500 mt-1">Monitor performance and click origins in real-time.</p>
         </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg border border-white/10 transition">
+        <div className="flex gap-3 opacity-30 cursor-not-allowed">
+          <button disabled className="flex items-center gap-2 bg-transparent px-4 py-2 rounded-lg border border-zinc-800 text-zinc-500">
             <QrCode size={18} />
-            Descargar QR
-          </button>
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg font-medium transition">
-            Editar Link
+            Download QR
           </button>
         </div>
       </div>
 
-      {/* Grid de Stats Rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {[
-          { label: 'Total Clics', value: '1,284', icon: MousePointerClick, color: 'text-blue-400' },
-          { label: 'Escaneos QR', value: '450', icon: QrCode, color: 'text-violet-400' },
-          { label: 'Ubicaciones', value: '12 países', icon: Globe, color: 'text-emerald-400' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl">
-            <div className="flex items-center justify-between mb-2">
-              <stat.icon className={stat.color} size={24} />
-              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Live</span>
+      {/* Main Content Area with Development Overlay */}
+      <div className="relative">
+        {/* Under Development Overlay */}
+        <div className="absolute inset-0 z-20 backdrop-blur-sm bg-black/40 flex items-center justify-center rounded-2xl border border-zinc-900">
+          <div className="bg-black border border-zinc-800 p-8 rounded-2xl shadow-[0_0_50px_-12px_rgba(255,255,255,0.1)] max-w-md text-center">
+            <div className="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-6 border border-zinc-700">
+              <Construction className="text-white animate-pulse" size={32} />
             </div>
-            <p className="text-gray-400 text-sm">{stat.label}</p>
-            <p className="text-2xl font-bold">{stat.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Sección de IP Logger / Logs Recientes */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-          <div className="p-6 border-b border-white/10 flex items-center justify-between">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <ShieldCheck className="text-blue-400" size={20} />
-              Registro de Actividad (IP Logger)
-            </h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="text-xs uppercase text-gray-500 bg-white/5">
-                  <th className="px-6 py-4 font-medium">Dirección IP</th>
-                  <th className="px-6 py-4 font-medium">Ubicación</th>
-                  <th className="px-6 py-4 font-medium">Dispositivo</th>
-                  <th className="px-6 py-4 font-medium">Fecha</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {/* Ejemplo de fila - Aquí mapearías tus datos reales */}
-                <tr className="hover:bg-white/5 transition">
-                  <td className="px-6 py-4 font-mono text-sm text-blue-300">192.168.1.45</td>
-                  <td className="px-6 py-4 text-sm">Madrid, ES</td>
-                  <td className="px-6 py-4 text-sm text-gray-400">Chrome / Windows</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">Hace 2 min</td>
-                </tr>
-              </tbody>
-            </table>
+            <h2 className="text-2xl font-bold mb-3 tracking-tight">Feature Under Development</h2>
+            <p className="text-zinc-400 leading-relaxed mb-6">
+              We are currently building a high-precision analytics engine for <span className="text-white font-mono">Swarve</span>. Detailed visitor insights will be available soon.
+            </p>
+            <div className="flex items-center justify-center gap-4 text-xs font-medium uppercase tracking-widest text-zinc-600">
+              <span className="flex items-center gap-1"><Timer size={14}/> Coming Soon</span>
+              <span className="w-1 h-1 bg-zinc-800 rounded-full" />
+              <span className="flex items-center gap-1"><Hammer size={14}/> V1.2.0</span>
+            </div>
           </div>
         </div>
 
-        {/* Sidebar de Acciones Rápidas */}
-        <div className="space-y-6">
-          <div className="bg-gradient-to-br from-violet-600/20 to-blue-600/20 border border-blue-500/20 p-6 rounded-2xl">
-            <h3 className="font-semibold mb-2">Tip de Swarve</h3>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Estás usando el **QR Dinámico**. Puedes cambiar la URL de destino de este link y el código QR impreso seguirá funcionando sin cambios.
-            </p>
+        {/* Blurred Background Content (B&W) */}
+        <div className="opacity-10 pointer-events-none select-none grayscale">
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              { label: 'Total Clicks', value: '0,000', icon: MousePointerClick },
+              { label: 'QR Scans', value: '000', icon: QrCode },
+              { label: 'Locations', value: '0 countries', icon: Globe },
+            ].map((stat, i) => (
+              <div key={i} className="bg-transparent border border-zinc-800 p-6 rounded-2xl">
+                <div className="flex items-center justify-between mb-2">
+                  <stat.icon className="text-white" size={24} />
+                  <span className="text-xs font-medium text-zinc-700 uppercase tracking-wider">Live</span>
+                </div>
+                <p className="text-zinc-500 text-sm">{stat.label}</p>
+                <p className="text-2xl font-bold">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Activity Log Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 bg-transparent border border-zinc-800 rounded-2xl overflow-hidden">
+              <div className="p-6 border-b border-zinc-800 flex items-center justify-between">
+                <h2 className="text-lg font-semibold flex items-center gap-2">
+                  <ShieldCheck className="text-white" size={20} />
+                  Activity Log (IP Logger)
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-xs uppercase text-zinc-600 bg-zinc-900/50">
+                      <th className="px-6 py-4 font-medium">IP Address</th>
+                      <th className="px-6 py-4 font-medium">Location</th>
+                      <th className="px-6 py-4 font-medium">Device</th>
+                      <th className="px-6 py-4 font-medium">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-900">
+                    <tr>
+                      <td className="px-6 py-4 font-mono text-sm">000.000.0.00</td>
+                      <td className="px-6 py-4 text-sm">London, UK</td>
+                      <td className="px-6 py-4 text-sm">Safari / iOS</td>
+                      <td className="px-6 py-4 text-sm">1 min ago</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Sidebar Tip */}
+            <div className="space-y-6">
+              <div className="bg-zinc-900/30 border border-zinc-800 p-6 rounded-2xl">
+                <h3 className="font-semibold mb-2 text-white text-sm uppercase tracking-wider">Swarve Tip</h3>
+                <p className="text-sm text-zinc-500 leading-relaxed">
+                  You are using **Dynamic QR**. You can change the destination URL and the printed code will remain the same.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
