@@ -58,18 +58,26 @@ export async function createShortUrl(formData: FormData) {
 /**
  * Deletes a specific link belonging to the user.
  */
-export async function deleteLink(formData: FormData) {
+export async function deleteLink(formData: FormData): Promise<{ success: boolean; error?: string }> {
     const session = await auth();
     const id = formData.get("id") as string | null;
 
-    if (!session?.user?.id || !id) throw new Error("Unauthorized access");
+    if (!session?.user?.id || !id) {
+        return { success: false, error: "Unauthorized access" };
+    }
 
-    await turso.execute({
-        sql: "DELETE FROM links WHERE id = ? AND userId = ?",
-        args: [id, session.user.id]
-    });
+    try {
+        await turso.execute({
+            sql: "DELETE FROM links WHERE id = ? AND userId = ?",
+            args: [id, session.user.id]
+        });
 
-    revalidatePath('/dashboard');
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        console.error("Delete Error:", error);
+        return { success: false, error: "Failed to delete link" };
+    }
 }
 
 /**
