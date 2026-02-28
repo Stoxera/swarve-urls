@@ -15,7 +15,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 export const metadata: Metadata = {
   title: "Swarve Links | Fast, Secure & Minimalist URL Shortener",
   description: "Transform long, messy URLs into clean, shareable links in seconds. Free, secure, and built for speed.",
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
     siteName: "Swarve Links",
     images: [
       {
-        url: "/png.png",
+        url: "/banner.png",
         alt: "Swarve Links - Minimalist Preview",
       },
     ],
@@ -39,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Swarve Links",
     description: "Shorten your links with a single click.",
-    images: ["/og-image.jpg"],
+    images: ["/banner.png"],
   },
   icons: {
     icon: "/favicon.ico", 
@@ -53,21 +52,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0a0a0a] text-white min-h-screen flex flex-col`}
-      >
-
-        
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#0a0a0a] text-white min-h-screen flex flex-col`} >
         <main className="flex-grow flex flex-col">
-          
           <AuthProvider>
             {children}
           </AuthProvider>
         </main>
-
-        
         <Footer />
-
         <Analytics/>
       </body>
     </html>

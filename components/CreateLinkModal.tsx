@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Shuffle, Rocket, Tags, Save } from "lucide-react";
+import { X, Shuffle, Rocket, Tags, Save, ShieldAlert } from "lucide-react";
 import { createShortUrl, updateLink } from "@/app/actions";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
@@ -25,12 +25,12 @@ function SubmitButton({ isEditing }: { isEditing: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className={`flex items-center gap-2 bg-zinc-100 text-black px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-white transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
+      className={`cursor-pointer flex items-center gap-2 bg-zinc-100 text-black px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-white transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${
         pending ? "animate-pulse" : ""
       }`}
     >
       {pending ? (
-        <span className="italic">Saving...</span>
+        <span className="italic">Scanning & Saving...</span>
       ) : (
         <>
           {isEditing ? <Save size={16} /> : <Rocket size={16} />}
@@ -65,11 +65,14 @@ export default function CreateLinkModal({
       setOpen(false);
       if (!isEditing) setSlug("");
     } else {
-      const errorMessage = result?.error === "Slug already taken" 
-        ? "Short link already taken" 
-        : (result?.error || "Something went wrong");
-      
-      toast.error(errorMessage);
+      if (result?.error === "Security Alert") {
+        toast.error("URL Blocked", {
+          description: "Dymo detected a phishing or malware threat.",
+          icon: <ShieldAlert className="text-red-500" />,
+        });
+      } else {
+        toast.error(result?.error || "Something went wrong");
+      }
     }
   }
 
@@ -85,7 +88,7 @@ export default function CreateLinkModal({
             <Dialog.Title className="text-xl font-semibold text-zinc-100 italic">
               {isEditing ? "Edit link" : "Create new link"}
             </Dialog.Title>
-            <Dialog.Close className="text-zinc-500 hover:text-white transition-colors">
+            <Dialog.Close className="cursor-pointer text-zinc-500 hover:text-white transition-colors">
               <X size={20} />
             </Dialog.Close>
           </div>
@@ -122,7 +125,7 @@ export default function CreateLinkModal({
                   <button
                     type="button"
                     onClick={generateRandomSlug}
-                    className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2.5 rounded-lg text-xs font-bold text-zinc-300 hover:bg-zinc-800 transition-all"
+                    className="cursor-pointer flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2.5 rounded-lg text-xs font-bold text-zinc-300 hover:bg-zinc-800 transition-all"
                   >
                     <Shuffle size={14} /> Randomize
                   </button>
@@ -141,12 +144,8 @@ export default function CreateLinkModal({
               />
             </div>
 
-            <div className="flex items-center justify-center gap-2 py-3 border border-dashed border-zinc-800 rounded-xl text-zinc-600 text-[11px] uppercase tracking-widest font-bold bg-zinc-950/50">
-              <Tags size={14} /> You don't have any tag created.
-            </div>
-
             <div className="flex items-center justify-end gap-4 mt-8 pt-4">
-              <Dialog.Close className="text-sm font-medium text-zinc-500 hover:text-white transition-colors">
+              <Dialog.Close className="cursor-pointer text-sm font-medium text-zinc-500 hover:text-white transition-colors">
                 Cancel
               </Dialog.Close>
               <SubmitButton isEditing={isEditing} />

@@ -36,11 +36,31 @@ export default async function DashboardLayout({ children }: { children: React.Re
           
           <DropdownMenu>
             <DropdownMenuTrigger className="cursor-pointer outline-none">
-              <img 
-                src={session?.user?.image || ""} 
-                className="h-8 w-8 rounded-full border border-zinc-800"
-                alt="User"
-              />
+              {/* Contenedor del Avatar corregido */}
+              <div className="h-8 w-8 rounded-full border border-zinc-800 bg-zinc-950 flex items-center justify-center overflow-hidden transition-all hover:border-zinc-600">
+                {session?.user?.image ? (
+                  <img 
+                    src={session.user.image} 
+                    className="h-full w-full object-cover"
+                    alt="User"
+                  />
+                ) : (
+                  /* SVG Default Automático */
+                  <svg 
+                    viewBox="0 0 16 16" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    className="h-5 w-5 opacity-80"
+                  >
+                    <g id="SVGRepo_iconCarrier">
+                      <path 
+                        d="m 8 1 c -1.65625 0 -3 1.34375 -3 3 s 1.34375 3 3 3 s 3 -1.34375 3 -3 s -1.34375 -3 -3 -3 z m -1.5 7 c -2.492188 0 -4.5 2.007812 -4.5 4.5 v 0.5 c 0 1.109375 0.890625 2 2 2 h 8 c 1.109375 0 2 -0.890625 2 -2 v -0.5 c 0 -2.492188 -2.007812 -4.5 -4.5 -4.5 z m 0 0" 
+                        fill="#fafeff"
+                      />
+                    </g>
+                  </svg>
+                )}
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem className="cursor-pointer" asChild><Link href="/"><Home className="cursor-pointer mr-2 h-4 w-4"/> Home</Link></DropdownMenuItem>

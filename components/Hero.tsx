@@ -3,128 +3,105 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles, Zap, ShieldCheck, Globe } from "lucide-react";
-
-function BackgroundEffect() {
-  return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
-      {/* Grid técnica */}
-      <div 
-        className="absolute inset-0 opacity-[0.2]" 
-        style={{
-          backgroundImage: `linear-gradient(to right, #27272a 1px, transparent 1px), linear-gradient(to bottom, #27272a 1px, transparent 1px)`,
-          backgroundSize: '4rem 4rem',
-          maskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 30%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 0%, #000 30%, transparent 100%)',
-        }} 
-      />
-      
-      {/* Glow principal esmeralda */}
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/10 rounded-full blur-[120px]" />
-    </div>
-  );
-}
+import { ArrowRight, Sparkles, ChevronRight } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-black text-white px-4 pt-32 pb-20 overflow-hidden">
-      <BackgroundEffect />
+    <section className="relative min-h-screen flex items-center justify-center bg-white text-black px-4 pt-20 overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <div 
+          className="absolute inset-0 opacity-[0.4]" 
+          style={{
+            backgroundImage: `linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)`,
+            backgroundSize: '40px 40px',
+            maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, #000 10%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, #000 10%, transparent 100%)',
+          }} 
+        />
+      </div>
 
-      <div className="mx-auto max-w-6xl text-center relative z-10">
+      <div className="relative z-10 max-w-5xl mx-auto text-center">
         
-        {/* Badge Pro con gradiente animado */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-2 mb-8 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 backdrop-blur-sm"
+          className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-zinc-200 bg-white shadow-sm mb-12 cursor-pointer hover:bg-zinc-50 transition-colors"
         >
-          <div className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400">
-            Network Status: High CPM Active
+          <span className="bg-black text-[10px] font-bold text-white px-1.5 py-0.5 rounded uppercase">New</span>
+          <span className="text-xs font-medium text-zinc-600 flex items-center gap-1">
+            🚀 Dashboard & Marketing UI Blocks, AI Theme Generator, and more... <Sparkles size={12} className="text-orange-500" />
           </span>
         </motion.div>
 
-        {/* Título: Tipografía masiva y agresiva */}
         <motion.h1 
-          className="mb-6 text-balance text-6xl font-black tracking-tighter md:text-8xl lg:text-9xl uppercase"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-8 leading-[1.1] text-zinc-900"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
         >
-          <span className="text-white">Swarve</span>
-          <span className="text-emerald-500 inline-flex items-center">
-            <Zap className="h-12 w-12 md:h-20 md:w-20 fill-current mx-2" />
-            Link
+          Build Futuristic UIs with <br />
+          <span className="relative">
+            Swarve Link
+            <svg className="absolute -bottom-2 left-0 w-full h-3 text-zinc-300" viewBox="0 0 100 10" preserveAspectRatio="none">
+              <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="2" fill="none" />
+            </svg>
           </span>
           <br />
-          <span className="text-zinc-800 outline-text">Protocol</span>
+          at Warp Speed ⚡
         </motion.h1>
-        
-        {/* Descripción refinada */}
+
         <motion.p 
-          className="mx-auto mb-12 max-w-2xl text-lg text-zinc-500 md:text-xl font-medium leading-relaxed"
+          className="mx-auto max-w-2xl text-zinc-500 text-lg md:text-xl mb-12 leading-relaxed"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ delay: 0.2 }}
         >
-          The most advanced link monetization layer. Real-time arbitrage, 
-          anti-fraud protection, and instant global payouts.
+          Accelerate your project development with ready-to-use, and fully customizable link 
+          <span className="font-semibold text-zinc-800"> Components, Blocks, UI Kits and Themes</span> with AI Tools 🪄.
         </motion.p>
 
-        {/* Botones estilo "Cyberpunk Clean" */}
         <motion.div 
-          className="flex flex-col sm:flex-row justify-center items-center gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <Button size="lg" className="group h-14 w-full sm:w-auto px-10 bg-white hover:bg-emerald-500 text-black font-black rounded-none transition-all duration-300" asChild>
-            <Link href="/auth/sign-up">
-              DEPLOY NOW
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </Button>
-
-          <Button 
-            size="lg"
-            variant="outline" 
-            className="h-14 w-full sm:w-auto px-10 border-zinc-800 bg-transparent hover:bg-zinc-900 text-white font-bold rounded-none transition-all"
-            asChild
-          >
-            <Link href="/docs">READ MANIFESTO</Link>
-          </Button>
-        </motion.div>
-
-        {/* Features rápidas debajo del Hero */}
-        <motion.div 
-          className="mt-24 grid grid-cols-2 md:grid-cols-3 gap-8 border-t border-zinc-900 pt-12"
+          className="flex flex-col md:flex-row items-center justify-center gap-6 mb-12"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
+          transition={{ delay: 0.3 }}
         >
-          <div className="flex flex-col items-center gap-2">
-            <ShieldCheck className="text-emerald-500 h-5 w-5" />
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Enterprise Security</span>
+          <div className="flex -space-x-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-zinc-200 overflow-hidden shadow-sm">
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="user" />
+              </div>
+            ))}
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <Globe className="text-emerald-500 h-5 w-5" />
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Global Payouts</span>
+          <div className="flex flex-col items-start gap-0.5">
+            <div className="flex text-orange-500">
+              {[1, 2, 3, 4, 5].map((i) => <Sparkles key={i} size={14} className="fill-current" />)}
+              <span className="ml-2 text-sm font-bold text-zinc-900">4.5</span>
+            </div>
+            <p className="text-xs text-zinc-500 font-medium tracking-tight uppercase">Loved by industry creators</p>
           </div>
-          <div className="hidden md:flex flex-col items-center gap-2">
-            <Zap className="text-emerald-500 h-5 w-5" />
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Low Latency</span>
-          </div>
+        </motion.div>
+
+        <motion.div 
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Button size="lg" className="h-14 px-8 bg-[#18181b] hover:bg-black text-white rounded-xl shadow-xl shadow-zinc-200 transition-all flex items-center gap-2 group" asChild>
+            <Link href="/dashboard">
+              Get all access <Sparkles size={16} className="group-hover:rotate-12 transition-transform" />
+            </Link>
+          </Button>
+          
+          <Button size="lg"  className="h-14 px-8 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 rounded-xl transition-all flex items-center gap-2" asChild>
+            <Link href="/explore">
+              Explore more <ArrowRight size={16} />
+            </Link>
+          </Button>
         </motion.div>
 
       </div>
-
-      <style jsx>{`
-        .outline-text {
-          -webkit-text-stroke: 1px #27272a;
-          color: transparent;
-        }
-      `}</style>
     </section>
   );
 }

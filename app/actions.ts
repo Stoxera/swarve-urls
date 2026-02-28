@@ -6,14 +6,16 @@ import { revalidatePath } from 'next/cache';
 import { nanoid } from 'nanoid';
 import { authenticator } from '@otplib/preset-default';
 import QRCode from 'qrcode';
+import { verifyUrlSafety } from '@/lib/dymo';
+import { getUrlMetadata, validateUrlFormat, categorizeUrl } from '@/lib/external-apis';
 
 /**
- * Creates a new shortened URL for the authenticated user.
+ * Creates a new shortened URL with full security scan and metadata enrichment.
  */
 export async function createShortUrl(formData: FormData) {
     const session = await auth();
 
-    // Check if user is authenticated
+    // 1. Authentication Check
     if (!session?.user?.id) {
         return { success: false, error: "Authentication required" };
     }
@@ -22,87 +24,106 @@ export async function createShortUrl(formData: FormData) {
     const customSlug = formData.get('slug') as string;
     const description = formData.get('description') as string;
 
-    // Validate URL format
-    if (!url || !url.startsWith('http')) {
-        return { success: false, error: "Invalid URL format. Must start with http/https" };
+    // 2. Format Validation (Abstract API)
+    const isValidFormat = await validateUrlFormat(url);
+    if (!url || !url.startsWith('http') || !isValidFormat) {
+        return { success: false, error: "Invalid or unreachable URL format." };
     }
 
-    // Use custom slug if provided, otherwise generate a random one
+    // 3. Security Scan (Dymo SDK)
+    const scan = await verifyUrlSafety(url);
+    if (!scan.safe) {
+        return { 
+            success: false, 
+            error: "Security Alert", 
+            details: scan.reason || "This URL has been flagged as malicious." 
+        };
+    }
+
+    // 4. Metadata & Categorization (Parallel Processing)
+    const [metadata, classification] = await Promise.all([
+        getUrlMetadata(url),
+        categorizeUrl(url)
+    ]);
+
+    // 5. Database Preparation
     const slug = customSlug.trim() !== "" ? customSlug : nanoid(6);
     const userId = session.user.id;
+    const id = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
 
     try {
-        const id = crypto.randomUUID();
-        const timestamp = new Date().toISOString();
-
         await turso.execute({
-            sql: "INSERT INTO links (id, url, slug, description, userId, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
-            args: [id, url, slug, description || "", userId, timestamp]
+            sql: `INSERT INTO links (
+                id, url, slug, description, userId, createdAt, clicks, 
+                title, image, category, logo
+            ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+            args: [
+                id, 
+                url, 
+                slug, 
+                description || "", 
+                userId, 
+                timestamp,
+                metadata?.title || null,
+                metadata?.image || null,
+                classification?.category || "General",
+                classification?.logo || null
+            ]
         });
 
         revalidatePath('/dashboard');
         return { success: true };
 
     } catch (error: any) {
-        console.error("TURSO DEBUG:", error);
-        
-        // Handle duplicate slug errors (SQLite UNIQUE constraint)
-        if (error.message?.includes("UNIQUE constraint failed") || error.code === "SQLITE_CONSTRAINT") {
-            return { success: false, error: "Slug already taken" };
+        console.error("Database Error:", error);
+        if (error.message?.includes("UNIQUE constraint failed")) {
+            return { success: false, error: "Custom slug already in use." };
         }
-
-        return { success: false, error: "Unexpected database error" };
+        return { success: false, error: "An unexpected error occurred." };
     }
 }
 
 /**
- * Deletes a specific link belonging to the user.
+ * Fetches all links for the currently logged-in user to display in the dashboard.
  */
-export async function deleteLink(formData: FormData): Promise<{ success: boolean; error?: string }> {
+export async function getUserLinks() {
     const session = await auth();
-    const id = formData.get("id") as string | null;
+    const userId = session?.user?.id;
 
-    if (!session?.user?.id || !id) {
-        return { success: false, error: "Unauthorized access" };
+    // If there is no session, return empty array to avoid errors
+    if (!userId) {
+        console.error("Dashboard Access: No session found");
+        return [];
     }
 
     try {
-        await turso.execute({
-            sql: "DELETE FROM links WHERE id = ? AND userId = ?",
-            args: [id, session.user.id]
+        const { rows } = await turso.execute({
+            sql: "SELECT * FROM links WHERE userId = ? ORDER BY createdAt DESC",
+            args: [userId]
         });
 
-        revalidatePath('/dashboard');
-        return { success: true };
+        // Map the rows to a clean array of objects
+        return rows.map(row => ({
+            id: String(row.id),
+            url: String(row.url),
+            slug: String(row.slug),
+            description: String(row.description || ""),
+            clicks: Number(row.clicks || 0),
+            createdAt: String(row.createdAt),
+            title: String(row.title || ""),
+            image: String(row.image || ""),
+            category: String(row.category || "General"),
+            logo: String(row.logo || "")
+        }));
     } catch (error) {
-        console.error("Delete Error:", error);
-        return { success: false, error: "Failed to delete link" };
+        console.error("Database Fetch Error:", error);
+        return [];
     }
 }
 
 /**
- * Fetches all user links for data export purposes.
- */
-export async function getLinksForExport() {
-    const session = await auth();
-    if (!session?.user?.id) throw new Error("Unauthorized access");
-
-    const { rows } = await turso.execute({
-        sql: "SELECT slug, url, description, clicks, createdAt FROM links WHERE userId = ? ORDER BY createdAt DESC",
-        args: [session.user.id]
-    });
-
-    return rows.map(row => ({
-        slug: String(row.slug),
-        url: String(row.url),
-        description: String(row.description || ""),
-        clicks: Number(row.clicks || 0),
-        createdAt: String(row.createdAt)
-    }));
-}
-
-/**
- * Updates the destination URL or description of an existing link.
+ * Updates an existing link. Re-scans security if the URL is modified.
  */
 export async function updateLink(formData: FormData) {
     const session = await auth();
@@ -111,91 +132,120 @@ export async function updateLink(formData: FormData) {
     const url = formData.get("url") as string;
     const description = formData.get("description") as string;
 
-    if (!userId || !id) throw new Error("Unauthorized access");
-
-    if (!url || !url.startsWith('http')) {
-        throw new Error("Please enter a valid URL.");
-    }
+    if (!userId || !id) return { success: false, error: "Unauthorized" };
 
     try {
+        // Re-verify security for the new URL
+        const scan = await verifyUrlSafety(url);
+        if (!scan.safe) return { success: false, error: "New URL is unsafe." };
+
+        const [metadata, classification] = await Promise.all([
+            getUrlMetadata(url),
+            categorizeUrl(url)
+        ]);
+
         await turso.execute({
-            sql: "UPDATE links SET url = ?, description = ? WHERE id = ? AND userId = ?",
-            args: [url, description || "", id, userId]
+            sql: `UPDATE links SET 
+                url = ?, description = ?, title = ?, image = ?, category = ?, logo = ? 
+                WHERE id = ? AND userId = ?`,
+            args: [
+                url, 
+                description || "", 
+                metadata?.title || null, 
+                metadata?.image || null,
+                classification?.category || "General",
+                classification?.logo || null,
+                id, 
+                userId
+            ]
         });
 
         revalidatePath('/dashboard');
-    } catch (error: any) {
-        throw new Error("Failed to update link");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "Failed to update link." };
     }
 }
 
 /**
- * Generates 2FA setup data including the secret and QR code.
+ * Deletes a link and revalidates dashboard.
  */
+export async function deleteLink(formData: FormData) {
+    const session = await auth();
+    const id = formData.get("id") as string;
+
+    if (!session?.user?.id || !id) return { success: false, error: "Unauthorized" };
+
+    try {
+        await turso.execute({
+            sql: "DELETE FROM links WHERE id = ? AND userId = ?",
+            args: [id, session.user.id]
+        });
+        revalidatePath('/dashboard');
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "Deletion failed." };
+    }
+}
+
+/**
+ * Data retrieval for CSV/JSON export.
+ */
+export async function getLinksForExport() {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    const { rows } = await turso.execute({
+        sql: "SELECT slug, url, category, clicks, createdAt FROM links WHERE userId = ? ORDER BY createdAt DESC",
+        args: [session.user.id]
+    });
+
+    return rows.map(row => ({
+        slug: String(row.slug),
+        url: String(row.url),
+        category: String(row.category || ""),
+        clicks: Number(row.clicks || 0),
+        createdAt: String(row.createdAt)
+    }));
+}
+
+/* --- 2FA MANAGEMENT --- */
+
 export async function setup2FA() {
     const session = await auth();
-    
-    if (!session?.user?.email) {
-        throw new Error("You must be logged in with a Discord account and share your email.");
-    }
+    if (!session?.user?.email) throw new Error("Email required.");
 
-    const userEmail = session.user.email;
     const secret = authenticator.generateSecret();
+    const otpauth = authenticator.keyuri(session.user.email, 'Swarve', secret);
     
-    // Create the OTP URI for authenticator apps
-    const otpauth = authenticator.keyuri(userEmail, 'Swarve', secret);
-    
-    try {
-        const qrImageData = await QRCode.toDataURL(otpauth);
-        return { 
-            secret,      // For manual entry
-            qrImageData, // For QR scanning
-            email: userEmail 
-        };
-    } catch (err) {
-        console.error('Error generating QR', err);
-        throw new Error('Failed to generate 2FA QR code');
-    }
+    const qrImageData = await QRCode.toDataURL(otpauth);
+    return { secret, qrImageData, email: session.user.email };
 }
 
-/**
- * Verifies the 6-digit TOTP token and enables 2FA in the database.
- */
 export async function verifyAndEnable2FA(token: string, secret: string) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
 
-    const isValid = authenticator.check(token, secret);
-    
-    if (isValid) {
-        // Update user record in Turso
+    if (authenticator.check(token, secret)) {
         await turso.execute({
             sql: "UPDATE users SET twoFactorSecret = ?, twoFactorEnabled = 1 WHERE id = ?",
             args: [secret, session.user.id]
         });
         return { success: true };
     }
-    
-    return { success: false, error: "Invalid verification code" };
+    return { success: false, error: "Invalid token." };
 }
 
-/**
- * Disables 2FA by verifying the current token first.
- */
 export async function disable2FA(token: string, savedSecret: string) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
 
-    const isValid = authenticator.check(token, savedSecret);
-    
-    if (isValid) {
-        // Clear 2FA credentials in Turso
+    if (authenticator.check(token, savedSecret)) {
         await turso.execute({
             sql: "UPDATE users SET twoFactorEnabled = 0, twoFactorSecret = NULL WHERE id = ?",
             args: [session.user.id]
         });
         return { success: true };
     }
-    
-    return { success: false, error: "Invalid code. Identity not verified." };
+    return { success: false, error: "Invalid token." };
 }

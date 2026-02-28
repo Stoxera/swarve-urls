@@ -29,7 +29,7 @@ export default function DeleteLinkButton({ id }: { id: string }) {
     <>
       <button
         onClick={() => setShowConfirm(true)}
-        className="p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+        className="cursor-pointer p-2 text-zinc-600 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
       >
         <Trash2 size={16} />
       </button>
@@ -44,14 +44,14 @@ export default function DeleteLinkButton({ id }: { id: string }) {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
+                className="cursor-pointer px-4 py-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isPending}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2"
+                className="cursor-pointer bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2"
               >
                 {isPending ? <Loader2 size={14} className="animate-spin" /> : null}
                 Delete Link
